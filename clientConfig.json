@@ -1,0 +1,8 @@
+{
+	"host": "a6r7afy5kv5wl.iot.us-west-2.amazonaws.com",
+	"port": 8883,
+	"clientId": "something",
+	"caCert": "root-CA.crt",
+	"clientCert": "df70d7827b-certificate.pem.crt",
+	"privateKey": "df70d7827b-private.pem.key"
+}
