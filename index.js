@@ -33,7 +33,8 @@ class awsIoTThing extends EventEmitter {
                "persistentSubscribe": true,
                "discardStale": true,
                "enableVersioning": true,
-               "makeLocalMatchDesired": false
+               "makeLocalMatchDesired": false,
+               "defaultDelayUpdate": false
           };
 
           // listen for events TODO
@@ -100,6 +101,12 @@ class awsIoTThing extends EventEmitter {
      set makeLocalMatchDesired(boolean) {
           this._options.makeLocalMatchDesired = boolean;
      }
+     get defaultDelayUpdate() {
+          return this._options.defaultDelayUpdate;
+     }
+     set defaultDelayUpdate(boolean) {
+          this._options.defaultDelayUpdate = boolean;
+     }
 
      // Method for updating properties of the thing
 
@@ -124,8 +131,9 @@ class awsIoTThing extends EventEmitter {
           }
           _this._local[propertyName] = propertyValue;
 
-
-          if (delayUpdate != true) {
+          if (delayUpdate || _this.defaultDelayUpdate) {
+               //DO nothing
+          } else {
                _this.reportState(callback);
           }
      }
