@@ -32,7 +32,8 @@ class awsIoTThing extends EventEmitter {
                "ignoreDeltas": false,
                "persistentSubscribe": true,
                "discardStale": true,
-               "enableVersioning": true
+               "enableVersioning": true,
+               "makeLocalMatchDesired": false
           };
 
           // listen for events TODO
@@ -92,6 +93,12 @@ class awsIoTThing extends EventEmitter {
      }
      set enableVersioning(boolean) {
           this._options.enableVersioning = boolean;
+     }
+     get makeLocalMatchDesired() {
+          return this._options.makeLocalMatchDesired;
+     }
+     set makeLocalMatchDesired(boolean) {
+          this._options.makeLocalMatchDesired = boolean;
      }
 
      // Method for updating properties of the thing
@@ -263,26 +270,25 @@ module.exports.clientFactory = function(options, callback) {
           clientRequest.thing._lastRequestStatus = stat
 
           if (stat == "accepted") {
+               debugConsole(JSON.stringify(stateObject));
+               clientRequest.thing._reported = stateObject.state.reported;
+               clientRequest.thing._desired = stateObject.state.desired;
+               clientRequest.thing._delta = stateObject.state.delta
+               if (clientRequest.thing.makeLocalMatchDesired) {
+                    Object.getOwnPropertyNames(clientRequest.thing._desired).forEach(function(val, idx, array) {
+                         clientRequest.thing._local[val] = clientRequest.thing._desired[val];
+                    });
+               }
                if (clientRequest.method == "update") {
-                    //TODO check this
-                    debugConsole(JSON.stringify(stateObject));
-                    clientRequest.thing._reported = stateObject.state.reported;
-                    clientRequest.thing._desired = stateObject.state.desired;
-                    clientRequest.thing._delta = stateObject.state.delta
+                    //TODO anything specific?
                }
 
                if (clientRequest.method == "get") {
-                    debugConsole(JSON.stringify(stateObject));
-                    clientRequest.thing._reported = stateObject.state.reported;
-                    clientRequest.thing._desired = stateObject.state.desired;
-                    clientRequest.thing._delta = stateObject.state.delta;
+                    //TODO anything specific?
                }
 
                if (clientRequest.method == "delete") {
-                    debugConsole(JSON.stringify(stateObject));
-                    clientRequest.thing._reported = stateObject.state.reported;
-                    clientRequest.thing._desired = stateObject.state.desired;
-                    clientRequest.thing._delta = stateObject.state.delta;
+                    //TODO anything specific?
                }
           } else { //rejected
                //TODO
