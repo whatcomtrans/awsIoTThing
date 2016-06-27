@@ -279,7 +279,10 @@ module.exports.clientFactory = function(options, callback) {
                }
 
                if (clientRequest.method == "delete") {
-                    //TODO - really need to refactor code above to only remove the property when delete is successful
+                    debugConsole(JSON.stringify(stateObject));
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    clientRequest.thing._desired = stateObject.state.desired;
+                    clientRequest.thing._delta = stateObject.state.delta;
                }
           } else { //rejected
                //TODO
