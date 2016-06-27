@@ -16,6 +16,13 @@ factory.clientFactory(clientOptions, function(err, client) {
           awsThing.register(function() {
                console.log("-------thing registered------");
                console.log(JSON.stringify(awsThing));
+               awsThing.retrieveState(function() {
+                    console.log("----------state retrieved----------");
+                    console.log(awsThing.getDesiredProperty("prefixPath"));
+                    awsThing.reportProperty("prefixPath", "hello world", function() {
+                         console.log("-----------property updated---------")
+                    });
+               });
           });
      });
      console.log("-------client returned-------");

@@ -154,6 +154,13 @@ class awsIoTThing extends EventEmitter {
           _this._client.addToken(token, "update", _this, callback);
      }
 
+     retrieveState(callback) {
+          var _this = this;
+          callback = (typeof callback === 'function') ? callback : function() {};
+          var token = _this._client.get(_this.thingName);
+          _this._client.addToken(token, "get", _this, callback);
+     }
+
      getDesiredProperty(propertyName) {
           var _this = this;
           if (_this._desired.hasOwnProperty(propertyName)) {
@@ -215,7 +222,7 @@ module.exports.clientFactory = function(options, callback) {
      };
 
      thingShadows.registerThing = function(thing) {
-          thingShadows._things.set(thing,thingName, thing);
+          thingShadows._things.set(thing.thingName, thing);
      };
 
      thingShadows.addToken = function(clientToken, method, thing, callback) {
@@ -245,15 +252,17 @@ module.exports.clientFactory = function(options, callback) {
           if (stat == "accepted") {
                if (clientRequest.method == "update") {
                     //TODO check this
-                    clientRequest.thing._reported = stateObject.reported;
-                    clientRequest.thing._desired = stateObject.desired;
-                    clientRequest.thing._delta = stateObject.delta
+                    debugConsole(JSON.stringify(stateObject));
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    clientRequest.thing._desired = stateObject.state.desired;
+                    clientRequest.thing._delta = stateObject.state.delta
                }
 
                if (clientRequest.method == "get") {
-                    clientRequest.thing._reported = stateObject.reported;
-                    clientRequest.thing._desired = stateObject.desired;
-                    clientRequest.thing._delta = stateObject.delta;
+                    debugConsole(JSON.stringify(stateObject));
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    clientRequest.thing._desired = stateObject.state.desired;
+                    clientRequest.thing._delta = stateObject.state.delta;
                }
 
                if (clientRequest.method == "delete") {
