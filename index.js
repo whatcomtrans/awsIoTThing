@@ -26,6 +26,7 @@ class awsIoTThing extends EventEmitter {
           _this._delta = null;
           _this._reported = null;
           _this._desired = null;
+          _this._local = null;
           _this._lastRequestStatus = null;
           _this._options = {
                "ignoreDeltas": false,
@@ -106,15 +107,15 @@ class awsIoTThing extends EventEmitter {
                     "configurable": true,
                     "enumarable": true,
                     "get": function() {
-                         return _this._reported[propertyName];
+                         return getProperty(propertyName);
                     },
                     "set": function(value) {
-                         _this._reported[propertyName] = value;
+                         _this.setProperty(propertyName, value);
                          _this.reportState();
                     }
                });
           }
-          _this[propertyName] = propertyValue;
+          _this._local[propertyName] = propertyValue;
 
 
           if (delayUpdate != true) {
@@ -125,17 +126,21 @@ class awsIoTThing extends EventEmitter {
      deleteProperty(propertyName, delayUpdate, callback) {
           var _this = this;
           delete _this[propertyName];
-          delete _this._reported[propertyName];
+          delete _this._local[propertyName];
 
           if (delayUpdate != true) {
                _this.reportState(callback);
           }
      }
 
+     setProperty(propertyName, propertyValue) {
+          _this.reportProperty(propertyName, propertyValue);
+     }
+
      getProperty(propertyName) {
           var _this = this;
-          if (_this._reported.hasOwnProperty(propertyName)) {
-               return this._reported[propertyName];
+          if (_this._local.hasOwnProperty(propertyName)) {
+               return this._local[propertyName];
           } else {
                return null;
           }
@@ -149,7 +154,7 @@ class awsIoTThing extends EventEmitter {
                     "reported": null
                }
           };
-          documentState.state.reported = _this._reported;
+          documentState.state.reported = _this._local;
           var token = _this._client.update(_this.thingName, documentState);
           _this._client.addToken(token, "update", _this, callback);
      }
@@ -159,6 +164,10 @@ class awsIoTThing extends EventEmitter {
           callback = (typeof callback === 'function') ? callback : function() {};
           var token = _this._client.get(_this.thingName);
           _this._client.addToken(token, "get", _this, callback);
+     }
+
+     setLocalToDesired() {
+          this._local = this._desired;
      }
 
      getDesiredProperty(propertyName) {
@@ -176,6 +185,10 @@ class awsIoTThing extends EventEmitter {
 
      getDelta() {
           return this._delta;
+     }
+
+     getReported() {
+          return this._reported;
      }
 
      getDeltaProperty(propertyName) {
