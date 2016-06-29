@@ -254,7 +254,7 @@ module.exports.clientFactory = function(options, callback) {
      thingShadows.thingFactory = function(thingName, options, doRegister, callback) {
           var error;
           var thisThing = new awsIoTThing(thingShadows, thingName);
-          Object.assing(thisThing, options);
+          Object.assign(thisThing, options);
           callback = (typeof callback === 'function') ? callback : function() {};
 
           if (doRegister) {
