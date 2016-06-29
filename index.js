@@ -116,10 +116,10 @@ class awsIoTThing extends EventEmitter {
           //Update local property
           if (_this.hasOwnProperty(propertyName) == false) {
                //create it first
-               /*Object.defineProperty(_this._local, propertyName, {
+               Object.defineProperty(_this._local, propertyName, {
                     "configurable": true,
-                    "enumarable": true,
-               });*/
+                    "enumarable": true
+               });
                Object.defineProperty(_this, propertyName, {
                     "configurable": true,
                     "enumarable": true,
