@@ -7,16 +7,36 @@
   TODO
 */
 
+
+/**
+ * Turn on and off debug to console
+ */
 var debugOn = true;
+
+/**
+ * debugConsole - A helper function for debuging to console, or not
+ *
+ * @param  {type} msg description
+ * @return {type}     description
+ */
 function debugConsole(msg) {
      if (debugOn) {
           console.log("DEBUG: " + msg);
      }
 }
 
+
+/**
+ * Requires...
+ */
 const EventEmitter = require('events');
 var awsIot = require('aws-iot-device-sdk');
 
+
+/**
+ * Defines an AWS IoT thing object to faciliate communication
+ * @class
+ */
 class awsIoTThing extends EventEmitter {
      constructor(client, name, callback) {
           super();
@@ -36,27 +56,6 @@ class awsIoTThing extends EventEmitter {
                "makeLocalMatchDesired": false,
                "defaultDelayUpdate": false
           };
-
-          // listen for events TODO
-          _this._client.on("timeout", function() {
-               //TODO
-          });
-          _this._client.on("", function() {
-               //TODO
-          });
-          _this._client.on("", function() {
-               //TODO
-          });
-          _this._client.on("", function() {
-               //TODO
-          });
-          _this._client.on("", function() {
-               //TODO
-          });
-          _this._client.on("", function() {
-               //TODO
-          });
-
      }
 
      // Putting register method here rather then constructor so it can take a callback and options can be first set
@@ -252,11 +251,17 @@ module.exports.clientFactory = function(options, callback) {
           callback(error, thingShadows);
      });
 
-     thingShadows.thingFactory = function(thingName, options, callback) {
+     thingShadows.thingFactory = function(thingName, options, doRegister, callback) {
           var error;
           var thisThing = new awsIoTThing(thingShadows, thingName);
+          Object.assing(thisThing, options);
           callback = (typeof callback === 'function') ? callback : function() {};
-          callback(error, thisThing);
+
+          if (doRegister) {
+               thisThing.register(function(error) {callback(error, thisThing)});
+          } else {
+               callback(error, thisThing);
+          }
      };
 
      thingShadows.registerThing = function(thing) {
