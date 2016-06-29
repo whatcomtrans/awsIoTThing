@@ -23,10 +23,10 @@ class awsIoTThing extends EventEmitter {
           var _this = this;
           _this._client = client;
           _this.thingName = name;
-          _this._delta = null;
-          _this._reported = null;
-          _this._desired = null;
-          _this._local = null;
+          _this._delta = new Object();
+          _this._reported = new Object();
+          _this._desired = new Object();
+          _this._local = new Object();
           _this._lastRequestStatus = null;
           _this._options = {
                "ignoreDeltas": false,
@@ -117,11 +117,15 @@ class awsIoTThing extends EventEmitter {
           //Update local property
           if (_this.hasOwnProperty(propertyName) == false) {
                //create it first
+               /*Object.defineProperty(_this._local, propertyName, {
+                    "configurable": true,
+                    "enumarable": true,
+               });*/
                Object.defineProperty(_this, propertyName, {
                     "configurable": true,
                     "enumarable": true,
                     "get": function() {
-                         return getProperty(propertyName);
+                         return _this.getProperty(propertyName);
                     },
                     "set": function(value) {
                          _this.setProperty(propertyName, value);
@@ -129,12 +133,16 @@ class awsIoTThing extends EventEmitter {
                     }
                });
           }
-          _this._local[propertyName] = propertyValue;
 
-          if (delayUpdate || _this.defaultDelayUpdate) {
-               //DO nothing
-          } else {
-               _this.reportState(callback);
+          //Only update value if it is different
+          if (Object.is(_this._local[propertyName], propertyValue) == false) {
+               _this._local[propertyName] = propertyValue;
+
+               if (delayUpdate || _this.defaultDelayUpdate) {
+                    //DO nothing
+               } else {
+                    _this.reportState(callback);
+               }
           }
      }
 
@@ -242,7 +250,7 @@ module.exports.clientFactory = function(options, callback) {
           callback(error, thingShadows);
      });
 
-     thingShadows.thingFactory = function(thingName, callback) {
+     thingShadows.thingFactory = function(thingName, options, callback) {
           var error;
           var thisThing = new awsIoTThing(thingShadows, thingName);
           callback = (typeof callback === 'function') ? callback : function() {};
