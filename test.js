@@ -22,6 +22,11 @@ factory.clientFactory(clientOptions, function(err, client) {
                     awsThing.reportProperty("prefixPath", "hello world", function() {
                          console.log("-----------property updated---------")
                     });
+                    console.log("----------");
+                    console.log(awsThing.prefixPath);
+                    awsThing.deleteProperty("prefixPath");
+                    console.log("-----------------------------------");
+                    console.log(JSON.stringify(awsThing._local));
                });
           });
      });
