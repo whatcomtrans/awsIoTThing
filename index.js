@@ -118,7 +118,8 @@ class awsIoTThing extends EventEmitter {
                //create it first
                Object.defineProperty(_this._local, propertyName, {
                     "configurable": true,
-                    "enumarable": true
+                    "enumarable": true,
+                    "writable": true
                });
                Object.defineProperty(_this, propertyName, {
                     "configurable": true,
