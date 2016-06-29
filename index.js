@@ -132,12 +132,13 @@ class awsIoTThing extends EventEmitter {
                          _this.reportState();
                     }
                });
+               _this.emit(propertyName + "Added");
           }
-
+          var oldValue = _this._local[propertyName];
           //Only update value if it is different
-          if (Object.is(_this._local[propertyName], propertyValue) == false) {
+          if (Object.is(oldValue, propertyValue) == false) {
                _this._local[propertyName] = propertyValue;
-
+               _this.emit(propertyName + "Changed", propertyValue, oldValue);
                if (delayUpdate || _this.defaultDelayUpdate) {
                     //DO nothing
                } else {
@@ -148,9 +149,10 @@ class awsIoTThing extends EventEmitter {
 
      deleteProperty(propertyName, delayUpdate, callback) {
           var _this = this;
+          var oldValue = _this[propertyName]
           delete _this[propertyName];
           delete _this._local[propertyName];
-
+          _this.emit(propertyName + "Deleted", oldValue)
           if (delayUpdate != true) {
                _this.reportState(callback);
           }
