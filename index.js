@@ -14,7 +14,7 @@
 var debugOn = true;
 
 /**
- * debugConsole - A helper function for debuging to console, or not
+ * //debugConsole - A helper function for debuging to console, or not
  *
  * @param  {type} msg description
  * @return {type}     description
@@ -30,7 +30,8 @@ function debugConsole(msg) {
  * Requires...
  */
 const EventEmitter = require('events');
-var awsIot = require('aws-iot-device-sdk');
+const equal = require('deep-equal');
+const awsIot = require('aws-iot-device-sdk');
 
 
 /**
@@ -111,16 +112,19 @@ class awsIoTThing extends EventEmitter {
 
      reportProperty(propertyName, propertyValue, delayUpdate, callback) {
           var _this = this;
+          //debugConsole(JSON.stringify(_this._local));
           callback = (typeof callback === 'function') ? callback : function() {};
+          var oldValue = null;
+          var isAdded = false;
 
           //Update local property
           if (_this.hasOwnProperty(propertyName) == false) {
+               //debugConsole("Property " + propertyName + " does not exist in _local, adding it now.")
                //create it first
-               Object.defineProperty(_this._local, propertyName, {
-                    "configurable": true,
-                    "enumarable": true,
-                    "writable": true
-               });
+               if (_this._local.hasOwnProperty(propertyName) == false) {
+                    _this._local[propertyName] = propertyValue;
+               }
+               ////debugConsole("Property added, _local is now " + JSON.stringify(_this._local));
                Object.defineProperty(_this, propertyName, {
                     "configurable": true,
                     "enumarable": true,
@@ -132,16 +136,27 @@ class awsIoTThing extends EventEmitter {
                          _this.reportState();
                     }
                });
-               _this.emit(propertyName + "Added");
+               isAdded = true;
+               _this.emit(propertyName + "Added", propertyValue);
+          } else {
+               oldValue = _this._local[propertyName];
           }
-          var oldValue = _this._local[propertyName];
+
           //Only update value if it is different
-          if (Object.is(oldValue, propertyValue) == false) {
+          ////debugConsole("Here with " + propertyName + " of value " + JSON.stringify(propertyValue) + " and old propertyValue of " + JSON.stringify(oldValue));
+          if (equal(oldValue, propertyValue, {"strict": true})) {     //samve value
+               //debugConsole("No value change");
+          } else {       //New value
+               //debugConsole("New property value, current _local is " + JSON.stringify(_this._local));
                _this._local[propertyName] = propertyValue;
-               _this.emit(propertyName + "Changed", propertyValue, oldValue);
+               if (isAdded == false) {  //Fire added or changed but not both
+                    //debugConsole("About to fire event " + propertyName + "Changed");
+                    _this.emit(propertyName + "Changed", propertyValue, oldValue);
+               }
                if (delayUpdate || _this.defaultDelayUpdate) {
                     //DO nothing
                } else {
+                    ////debugConsole("Here, about to reportState" + JSON.stringify(_this._local));
                     _this.reportState(callback);
                }
           }
@@ -159,6 +174,7 @@ class awsIoTThing extends EventEmitter {
      }
 
      setProperty(propertyName, propertyValue) {
+          var _this = this;
           _this.reportProperty(propertyName, propertyValue);
      }
 
@@ -180,6 +196,7 @@ class awsIoTThing extends EventEmitter {
                }
           };
           documentState.state.reported = _this._local;
+          //debugConsole("About to reportState with documentState = " + JSON.stringify(documentState));
           var token = _this._client.update(_this.thingName, documentState);
           _this._client.addToken(token, "update", _this, callback);
      }
@@ -192,7 +209,16 @@ class awsIoTThing extends EventEmitter {
      }
 
      setLocalToDesired() {
-          this._local = this._desired;
+          var _this = this;
+          //debugConsole("In setLocalToDesired and _desired is " + JSON.stringify(_this._desired));
+          if (typeof _this._desired === 'undefined') {
+               _this._desired = new Object();
+
+          } else {
+               Object.getOwnPropertyNames(_this._desired).forEach(function(val, idx, array) {
+                    _this.reportProperty(val, _this._desired[val], true);
+               });
+          }
      }
 
      getDesiredProperty(propertyName) {
@@ -294,25 +320,33 @@ module.exports.clientFactory = function(options, callback) {
           clientRequest.thing._lastRequestStatus = stat
 
           if (stat == "accepted") {
-               debugConsole(JSON.stringify(stateObject));
-               clientRequest.thing._reported = stateObject.state.reported;
-               clientRequest.thing._desired = stateObject.state.desired;
-               clientRequest.thing._delta = stateObject.state.delta
-               if (clientRequest.thing.makeLocalMatchDesired) {
-                    Object.getOwnPropertyNames(clientRequest.thing._desired).forEach(function(val, idx, array) {
-                         clientRequest.thing._local[val] = clientRequest.thing._desired[val];
-                    });
-               }
+               // For all
+               //debugConsole("Status event recieved, " + clientRequest.method + " wa " + stat + " and returned " + JSON.stringify(stateObject));
                if (clientRequest.method == "update") {
-                    //TODO anything specific?
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    // Update only returns reported
                }
 
                if (clientRequest.method == "get") {
-                    //TODO anything specific?
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    clientRequest.thing._desired = stateObject.state.desired;
+                    clientRequest.thing._delta = stateObject.state.delta
+                    if (clientRequest.thing.makeLocalMatchDesired) {
+                         //debugConsole("Going to setLocalToDesired");
+                         clientRequest.thing.setLocalToDesired();
+                         clientRequest.thing.reportState();
+                    }
                }
 
                if (clientRequest.method == "delete") {
-                    //TODO anything specific?
+                    debugConsole("In delete, stateObject is " + JSON.stringify(stateObject));
+                    clientRequest.thing._reported = stateObject.state.reported;
+                    clientRequest.thing._desired = stateObject.state.desired;
+                    clientRequest.thing._delta = stateObject.state.delta
+                    if (clientRequest.thing.makeLocalMatchDesired) {
+                         //debugConsole("Going to setLocalToDesired");
+                         clientRequest.thing.setLocalToDesired();
+                    }
                }
           } else { //rejected
                //TODO
@@ -324,10 +358,33 @@ module.exports.clientFactory = function(options, callback) {
           clientRequest.callback(stat, stateObject);
      });
 
+     thingShadows.on("delta", function(thingName, stateObject) {
+          var _this = this;
+          debugConsole("In delta, state is " + JSON.stringify(stateObject));
+          // Find the clientRequest
+          // TODO - need to not just emit but to also update values as needed
+          var thing = thingShadows._things.get(thingName);
+          thing._delta = stateObject.state;
+          if (thing.makeLocalMatchDesired) {
+               debugConsole("Going to retrieveState and make sure we are up to date");
+               //thing.setLocalToDesired();
+               thing.retrieveState();
+          }
+          thing.emit("delta", stateObject);
+     });
+
      thingShadows.on("foreignStateChange", function(thingName, operation, stateObject) {
           var _this = this;
           // Find the clientRequest
+          // TODO - need to not just emit but to also update values as needed
           var thing = thingShadows._things.get(thingName);
+          thing._reported = stateObject;
+          thing._desired = stateObject;
+          thing._delta = stateObject;
+          if (thing.makeLocalMatchDesired) {
+               //debugConsole("Going to setLocalToDesired");
+               thing.setLocalToDesired();
+          }
           thing.emit("foreignStateChange", operation, stateObject);
      });
 

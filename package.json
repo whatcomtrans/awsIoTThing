@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/whatcomtrans/awsIoTThing#readme",
   "dependencies": {
-    "aws-iot-device-sdk": "^1.0.12"
+    "aws-iot-device-sdk": "^1.0.12",
+    "deep-equal": "^1.0.1"
   }
 }
