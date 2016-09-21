@@ -3,6 +3,6 @@
 	"port": 8883,
 	"clientId": "something",
 	"caCert": "root-CA.crt",
-	"clientCert": "df70d7827b-certificate.pem.crt",
-	"privateKey": "df70d7827b-private.pem.key"
+	"clientCert": "477843c30f-certificate.pem.crt",
+	"privateKey": "477843c30f-private.pem.key"
 }
