@@ -223,10 +223,14 @@ class awsIoTThing extends EventEmitter {
 
      getDesiredProperty(propertyName) {
           var _this = this;
-          if (_this._desired.hasOwnProperty(propertyName)) {
-               return this._desired[propertyName];
-          } else {
+          if (_this._desired === undefined) {
                return null;
+          } else {
+               if (_this._desired.hasOwnProperty(propertyName)) {
+                    return this._desired[propertyName];
+               } else {
+                    return null;
+               }
           }
      }
 
@@ -244,10 +248,14 @@ class awsIoTThing extends EventEmitter {
 
      getDeltaProperty(propertyName) {
           var _this = this;
-          if (_this._delta.hasOwnProperty(propertyName)) {
-               return this._delta[propertyName];
-          } else {
+          if (_this._delta === undefined) {
                return null;
+          } else {
+               if (_this._delta.hasOwnProperty(propertyName)) {
+                    return this._delta[propertyName];
+               } else {
+                    return null;
+               }
           }
      }
 
