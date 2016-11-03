@@ -282,9 +282,55 @@ module.exports.clientFactory = function(options, callback) {
 
 
      //Wait until it has connected to return, I suppose, if at all
-     thingShadows.on("connect", function() {
+     thingShadows.on("connect", function(connack) {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("connect", connack);
+          });
           callback(error, thingShadows);
      });
+
+     thingShadows.on("reconnect", function() {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("reconnect", );
+          });
+     });
+
+     thingShadows.on("close", function() {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("close", );
+          });
+     });
+
+     thingShadows.on("offline", function() {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("offline", );
+          });
+     });
+
+     thingShadows.on("error", function() {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("error", );
+          });
+     });
+
+     thingShadows.on("message", function(topic, message, packet) {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("message", topic, message, packet);
+          });
+     });
+
+     thingShadows.on("packetsend", function(packet) {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("packetsend", packet);
+          });
+     });
+
+     thingShadows.on("packetreceive", function(packet) {
+          thingShadows._things.forEach(function(obj) {
+               obj.emit("packetreceive", packet);
+          });
+     });
+
 
      thingShadows.thingFactory = function(thingName, options, doRegister, callback) {
           var error;
