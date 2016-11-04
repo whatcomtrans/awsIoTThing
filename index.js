@@ -264,7 +264,19 @@ class awsIoTThing extends EventEmitter {
      }
 
      end(force, callback) {
-          this._client.end(force, callback);
+          this._client.end.apply(this, arguments);
+     }
+
+     subscribe(topic, options, callback) {
+          this._client.subscribe.apply(this, arguments);
+     }
+
+     publish(topic, message, options, callback) {
+          this._client.publish.apply(this, arguments);
+     }
+
+     unsubscribe(topic, callback) {
+          this._client.unsubscribe.apply(this, arguments);
      }
 }
 
@@ -291,32 +303,35 @@ module.exports.clientFactory = function(options, callback) {
 
      thingShadows.on("reconnect", function() {
           thingShadows._things.forEach(function(obj) {
-               obj.emit("reconnect", );
+               obj.emit("reconnect");
           });
      });
 
      thingShadows.on("close", function() {
           thingShadows._things.forEach(function(obj) {
-               obj.emit("close", );
+               obj.emit("close");
           });
      });
 
      thingShadows.on("offline", function() {
           thingShadows._things.forEach(function(obj) {
-               obj.emit("offline", );
+               obj.emit("offline");
           });
      });
 
      thingShadows.on("error", function() {
           thingShadows._things.forEach(function(obj) {
-               obj.emit("error", );
+               obj.emit("error");
           });
      });
 
      thingShadows.on("message", function(topic, message, packet) {
+          debugConsole("Received message from topic " + topic + " with contents of " + message);
           thingShadows._things.forEach(function(obj) {
                obj.emit("message", topic, message, packet);
           });
+
+          //TODO need to map subscriptions to thing via thingShadow and emit only for those things that subscribed
      });
 
      thingShadows.on("packetsend", function(packet) {
