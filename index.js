@@ -465,4 +465,6 @@ module.exports.clientFactory = function(options, callback) {
           clientRequest.thing.emit("timeout", thingName, clientToken);
           clientRequest.callback("timeout");
      });
+  
+    return thingShadows;  // As the client
 }
