@@ -9,9 +9,9 @@
 
 
 /**
- * Turn on and off debug to console
+ * Turn on and off debug to console by setting to null
  */
-var debugOn = true;
+var _debugConsole = console;
 
 /**
  * //debugConsole - A helper function for debuging to console, or not
@@ -20,8 +20,8 @@ var debugOn = true;
  * @return {type}     description
  */
 function debugConsole(msg) {
-     if (debugOn) {
-          console.log("DEBUG: " + msg);
+     if (_debugConsole != null) {
+          _debugConsole.log(msg);
      }
 }
 
@@ -106,6 +106,14 @@ class awsIoTThing extends EventEmitter {
      }
      set defaultDelayUpdate(boolean) {
           this._options.defaultDelayUpdate = boolean;
+     }
+
+     get connected() {
+          return this._client.connected();
+     }
+
+     get reconnecting() {
+          return this._client.reconnecting();
      }
 
      // Method for updating properties of the thing
@@ -465,6 +473,10 @@ module.exports.clientFactory = function(options, callback) {
           clientRequest.thing.emit("timeout", thingName, clientToken);
           clientRequest.callback("timeout");
      });
-  
+
     return thingShadows;  // As the client
 }
+
+module.exports.setLogger = function(logger) {
+     _debugConsole = logger;
+};
