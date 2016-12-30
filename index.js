@@ -63,11 +63,9 @@ class awsIoTThing extends EventEmitter {
      register(callback) {
           var _this = this;
           var error;
-          _this._client.register(_this.thingName, _this._options);
-          _this._client.registerThing(_this);
-          //Wait 5 seconds before calling back (see AWS documentation for Update)
           callback = (typeof callback === 'function') ? callback : function(error) {};
-          setTimeout(function() {callback(error)}, 5000);
+          _this._client.registerThing(_this);
+          _this._client.register(_this.thingName, _this._options, callback);
      }
 
      // register options get/set
